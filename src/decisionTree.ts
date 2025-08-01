@@ -5,35 +5,84 @@ export interface DecisionNode {
   
   export const decisionTree: Record<string, DecisionNode> = {
     start: {
-      message: "¡Hola! ¿En qué puedo ayudarte?",
+      message: "¡Hola! Bienvenido al Taller y Concesionario. ¿En qué podemos ayudarte hoy?",
       options: [
-        { text: "Soporte técnico", next: "soporte" },
-        { text: "Información de productos", next: "productos" },
+        { text: "Servicios de taller mecánico", next: "taller" },
+        { text: "Venta de autos", next: "venta" },
+        { text: "Contactar un asesor", action: "connect_agent" },
       ],
     },
-    soporte: {
-      message: "¿Qué tipo de problema tienes?",
+  
+    // --- Taller Mecánico ---
+    taller: {
+      message: "Ofrecemos distintos servicios mecánicos. ¿Qué necesitas?",
       options: [
-        { text: "No puedo iniciar sesión", next: "login" },
-        { text: "Otro problema", next: "otro" },
+        { text: "Mantenimiento preventivo", next: "mantenimiento" },
+        { text: "Reparaciones específicas", next: "reparaciones" },
+        { text: "Cotizar repuestos", next: "repuestos" },
+        { text: "Volver al inicio", next: "start" },
       ],
     },
-    login: {
-      message: "Revisa que tu usuario esté correcto. ¿Quieres hablar con un agente?",
+    mantenimiento: {
+      message: "Realizamos cambio de aceite, revisión de frenos, alineación, etc. ¿Quieres agendar una cita?",
       options: [
-        { text: "Sí, conectar agente", action: "connect_agent" },
-        { text: "No, gracias", next: "end" },
+        { text: "Sí, agendar cita", action: "schedule_service" },
+        { text: "Volver al menú de taller", next: "taller" },
       ],
     },
-    productos: {
-      message: "Tenemos múltiples categorías. ¿Quieres verlas?",
+    reparaciones: {
+      message: "Podemos diagnosticar y reparar problemas eléctricos, de motor, suspensión y más. ¿Quieres hablar con un asesor?",
       options: [
-        { text: "Sí", action: "open_products" },
-        { text: "No", next: "end" },
+        { text: "Sí, conectar con asesor", action: "connect_agent" },
+        { text: "Volver al menú de taller", next: "taller" },
       ],
     },
+    repuestos: {
+      message: "Contamos con repuestos originales y alternativos. ¿Quieres ver nuestro catálogo?",
+      options: [
+        { text: "Sí, abrir catálogo de repuestos", action: "open_parts_catalog" },
+        { text: "Volver al menú de taller", next: "taller" },
+      ],
+    },
+  
+    // --- Venta de Autos ---
+    venta: {
+      message: "Tenemos autos nuevos y usados disponibles. ¿Qué tipo de auto buscas?",
+      options: [
+        { text: "Autos nuevos", next: "autos_nuevos" },
+        { text: "Autos usados", next: "autos_usados" },
+        { text: "Ver planes de financiamiento", next: "financiamiento" },
+        { text: "Volver al inicio", next: "start" },
+      ],
+    },
+    autos_nuevos: {
+      message: "Contamos con las últimas versiones de nuestras marcas principales. ¿Quieres ver el catálogo?",
+      options: [
+        { text: "Sí, ver catálogo de autos nuevos", action: "open_new_cars" },
+        { text: "Volver a venta de autos", next: "venta" },
+      ],
+    },
+    autos_usados: {
+      message: "Ofrecemos autos usados certificados. ¿Quieres ver la lista?",
+      options: [
+        { text: "Sí, ver autos usados", action: "open_used_cars" },
+        { text: "Volver a venta de autos", next: "venta" },
+      ],
+    },
+    financiamiento: {
+      message: "Ofrecemos opciones de crédito y leasing. ¿Quieres que un asesor te contacte?",
+      options: [
+        { text: "Sí, contactar asesor financiero", action: "connect_finance_agent" },
+        { text: "Volver a venta de autos", next: "venta" },
+      ],
+    },
+  
     end: {
-      message: "¡Gracias por usar nuestro asistente!",
+      message: "¡Gracias por visitar nuestro asistente! ¿Deseas algo más?",
+      options: [
+        { text: "Volver al inicio", next: "start" },
+        { text: "Salir", action: "close_chat" },
+      ],
     },
   };
   

@@ -7,6 +7,40 @@ interface Message {
   from: "bot" | "user";
 }
 
+const actions: Record<string, () => void> = {
+  connect_agent: () => {
+    alert("Conectando con un asesor de servicio al cliente...");
+    // Aquí podrías abrir un chat en vivo o enviar una notificación al equipo
+  },
+  schedule_service: () => {
+    alert("Abriendo formulario para agendar tu cita...");
+    // Aquí podrías abrir un modal o redirigir a un formulario externo
+    window.open("/agenda-cita", "_blank");
+  },
+  open_parts_catalog: () => {
+    alert("Abriendo catálogo de repuestos...");
+    window.open("/catalogo-repuestos", "_blank");
+  },
+  open_new_cars: () => {
+    alert("Abriendo catálogo de autos nuevos...");
+    window.open("/catalogo-autos-nuevos", "_blank");
+  },
+  open_used_cars: () => {
+    alert("Abriendo catálogo de autos usados...");
+    window.open("/catalogo-autos-usados", "_blank");
+  },
+  connect_finance_agent: () => {
+    alert("Conectando con un asesor financiero...");
+    // Podrías abrir un chat o formulario específico
+  },
+  close_chat: () => {
+    alert("Cerrando el chat. ¡Gracias por visitarnos!");
+    // Podrías desmontar el componente
+    const container = document.getElementById("decision-chat-root");
+    if (container) container.style.display = "none";
+  },
+};
+
 export default function ChatWidget() {
   const [currentNode, setCurrentNode] = useState<string>(
     localStorage.getItem("decision-chat-current") || "start"
@@ -35,19 +69,16 @@ export default function ChatWidget() {
   const handleOptionClick = (option: { text: string; next?: string; action?: string }) => {
     addUserMessage(option.text);
 
-    if (option.action === "connect_agent") {
-      addBotMessage("Conectando con un agente...");
+    if (option.action && actions[option.action]) {
+      actions[option.action]();
       setCurrentNode("end");
-    } else if (option.action === "open_products") {
-      addBotMessage("Abriendo catálogo de productos...");
-      setCurrentNode("end");
+      addBotMessage(decisionTree["end"].message);
     } else if (option.next) {
       setCurrentNode(option.next);
       addBotMessage(decisionTree[option.next].message);
     }
   };
 
-  /** --- NUEVO: función de reinicio --- **/
   const resetChat = () => {
     localStorage.removeItem("decision-chat-current");
     localStorage.removeItem("decision-chat-history");
