@@ -1,24 +1,10 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import ChatWidget from './components/ChatWidget'
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import './index.css'
+import ChatWidget from './components/ChatWidget.tsx'
 
-function mountWidget() {
-  const containerId = 'decision-chat-root'
-  let container = document.getElementById(containerId)
-
-  if (!container) {
-    container = document.createElement('div')
-    container.id = containerId
-    document.body.appendChild(container)
-  }
-
-  ReactDOM.createRoot(container).render(
-    <React.StrictMode>
-      <ChatWidget />
-    </React.StrictMode>
-  )
-}
-
-(window as any).DecisionChat = {
-  mount: mountWidget
-}
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <ChatWidget />
+  </StrictMode>,
+)
