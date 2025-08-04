@@ -6,7 +6,7 @@ import { WidgetContainer } from './widget/components/widget-container.tsx';
 function App() {
   return (
     <>
-      <WidgetContainer clientKey={'test-key'} />
+      <WidgetContainer clientKey={'petawidget_prod234'} />
     </>
   );
 }
