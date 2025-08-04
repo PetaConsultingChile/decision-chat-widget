@@ -8,7 +8,6 @@
           { text: "Contactar un asesor", action: "connect_agent" },
         ],
       },
-      // --- Taller Mecánico ---
       taller: {
         message: "Ofrecemos distintos servicios mecánicos. ¿Qué necesitas?",
         options: [
