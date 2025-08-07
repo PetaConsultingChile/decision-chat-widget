@@ -38,7 +38,6 @@
           { text: "Volver al menú de taller", next: "taller" },
         ],
       },
-      // --- Venta de Autos ---
       venta: {
         message: "Tenemos autos nuevos y usados disponibles. ¿Qué tipo de auto buscas?",
         options: [
@@ -93,8 +92,11 @@
     };
   
     let isOpen = false;
+    let isCollapsed = false;
     let currentNode = localStorage.getItem("decision-chat-current") || "start";
     let history = JSON.parse(localStorage.getItem("decision-chat-history") || "[]");
+    let dragOffset = { x: 0, y: 0 };
+    let widgetPosition = { x: 20, y: 20 };
   
     const host = document.createElement("div");
     host.id = "decision-chat-root";
@@ -103,23 +105,376 @@
   
     const style = document.createElement("style");
     style.textContent = `
-      .widgetContainer { position: fixed; bottom: 20px; right: 20px; width: 320px; display: flex; flex-direction: column; background: white; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); font-family: system-ui, sans-serif; }
-      .header { padding: 12px; font-weight: bold; background-color: #2563eb; color: white; border-top-left-radius: 8px; border-top-right-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
-      .messages { flex: 1; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; height: 320px; }
-      .botMessage { align-self: flex-start; background-color: #f3f4f6; padding: 8px; border-radius: 8px; font-size: 14px; }
-      .userMessage { align-self: flex-end; background-color: #bfdbfe; padding: 8px; border-radius: 8px; font-size: 14px; }
-      .options { padding: 12px; display: flex; flex-direction: column; gap: 8px; border-top: 1px solid #e5e7eb; }
-      .optionButton { background-color: #2563eb; color: white; padding: 8px; border-radius: 6px; border: none; cursor: pointer; transition: background 0.2s ease; }
-      .optionButton:hover { background-color: #1d4ed8; }
-      .resetButton { font-size: 12px; padding: 4px 8px; background: white; color: #2563eb; border: 1px solid #2563eb; border-radius: 4px; cursor: pointer; transition: background 0.2s ease; }
-      .resetButton:hover { background: #2563eb; color: white; }
-      .widgetButton { padding: 10px 16px; background: #2563eb; color: #fff; border: none; border-radius: 50%; width: 56px; height: 56px; cursor: pointer; position: fixed; bottom: 20px; right: 20px; font-size: 16px; z-index: 10000; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      
+      .widgetContainer {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 300px;
+        max-height: 550px;
+        display: flex;
+        flex-direction: column;
+        background: #336090;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 16px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        z-index: 999999 !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        backdrop-filter: blur(10px);
+        overflow: hidden;
+      }
+      
+      .widgetContainer.collapsed {
+        height: 60px;
+        max-height: 60px;
+      }
+      
+      .widgetContainer.dragging {
+        cursor: grabbing;
+        transform: scale(1.02);
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+      }
+      
+      .header {
+        padding: 16px 20px;
+        background: #336090;
+        color: white;
+        border-radius: 16px 16px 0 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: grab;
+        user-select: none;
+        font-weight: 600;
+        font-size: 16px;
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+        pointer-events: none;
+      }
+      
+      .header:active {
+        cursor: grabbing;
+      }
+      
+      .headerContent {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        z-index: 1;
+        position: relative;
+      }
+      
+      .headerIcon {
+        width: 24px;
+        height: 24px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+      }
+      
+      .headerControls {
+        display: flex;
+        gap: 8px;
+        z-index: 1;
+        position: relative;
+      }
+      
+      .controlButton {
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        color: white;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        transition: all 0.2s ease;
+        backdrop-filter: blur(5px);
+      }
+      
+      .controlButton:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: scale(1.1);
+      }
+      
+      .controlButton:focus {
+        outline: 2px solid rgba(255, 255, 255, 0.5);
+        outline-offset: 2px;
+      }
+      
+      .content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background: white;
+        border-radius: 0 0 16px 16px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+      }
+      
+      .content.collapsed {
+        display: none;
+      }
+      
+      .messages {
+        flex: 1;
+        padding: 16px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        max-height: 250px;
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e0 #f7fafc;
+      }
+      
+      .messages::-webkit-scrollbar {
+        width: 6px;
+      }
+      
+      .messages::-webkit-scrollbar-track {
+        background: #f7fafc;
+        border-radius: 3px;
+      }
+      
+      .messages::-webkit-scrollbar-thumb {
+        background: #336090;
+        border-radius: 3px;
+      }
+      
+      .messages::-webkit-scrollbar-thumb:hover {
+        background: #2a4f7a;
+      }
+      
+      .botMessage {
+        align-self: flex-start;
+        background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+        padding: 12px 16px;
+        border-radius: 18px 18px 18px 4px;
+        font-size: 14px;
+        line-height: 1.4;
+        color: #2d3748;
+        max-width: 85%;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e2e8f0;
+      }
+      
+      .userMessage {
+        align-self: flex-end;
+        background: #336090;
+        padding: 12px 16px;
+        border-radius: 18px 18px 4px 18px;
+        font-size: 14px;
+        line-height: 1.4;
+        color: white;
+        max-width: 85%;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      
+      .options {
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        border-top: 1px solid #e2e8f0;
+        background: #fafbfc;
+      }
+      
+      .optionButton {
+        background: #336090;
+        color: white;
+        padding: 12px 16px;
+        border-radius: 12px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 14px;
+        font-weight: 500;
+        text-align: left;
+        line-height: 1.4;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      
+      .optionButton:hover {
+        background: #2a4f7a;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+      }
+      
+      .optionButton:focus {
+        outline: 2px solid #667eea;
+        outline-offset: 2px;
+      }
+      
+      .optionButton:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      
+      .widgetButton {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 60px;
+        height: 60px;
+        background: #336090;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 24px;
+        z-index: 999999 !important;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(10px);
+      }
+      
+      .widgetButton:hover {
+        transform: scale(1.1) rotate(5deg);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+      }
+      
+      .widgetButton:focus {
+        outline: 2px solid rgba(255, 255, 255, 0.5);
+        outline-offset: 2px;
+      }
+      
+      .widgetButton:active {
+        transform: scale(0.95);
+      }
+      
+      .resetButton {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 8px;
+        padding: 6px 12px;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        backdrop-filter: blur(5px);
+      }
+      
+      .resetButton:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: scale(1.05);
+      }
+      
+      .resetButton:focus {
+        outline: 2px solid rgba(255, 255, 255, 0.5);
+        outline-offset: 2px;
+      }
+      
+      /* Responsive Design */
+      @media (max-width: 768px) {
+        .widgetContainer {
+          width: calc(100vw - 40px);
+          max-width: 350px;
+          left: 20px;
+          right: 20px;
+          bottom: 20px;
+        }
+        
+        .messages {
+          max-height: 200px;
+        }
+        
+        .widgetButton {
+          width: 56px;
+          height: 56px;
+          font-size: 20px;
+        }
+      }
+      
+      @media (max-width: 480px) {
+        .widgetContainer {
+          width: calc(100vw - 20px);
+          left: 10px;
+          right: 10px;
+          bottom: 10px;
+        }
+        
+        .header {
+          padding: 12px 16px;
+          font-size: 14px;
+        }
+        
+        .messages {
+          padding: 12px;
+          max-height: 180px;
+        }
+        
+        .options {
+          padding: 12px;
+        }
+        
+        .optionButton {
+          padding: 10px 14px;
+          font-size: 13px;
+        }
+      }
+      
+      /* Animation for new messages */
+      .message-enter {
+        opacity: 0;
+        transform: translateY(10px);
+        animation: messageSlideIn 0.3s ease forwards;
+      }
+      
+      @keyframes messageSlideIn {
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      
+      /* Loading animation */
+      .loading {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 2px solid #f3f4f6;
+        border-radius: 50%;
+        border-top-color: #667eea;
+        animation: spin 1s ease-in-out infinite;
+      }
+      
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
     `;
     shadow.appendChild(style);
   
     const widgetButton = document.createElement("button");
     widgetButton.className = "widgetButton";
-    widgetButton.textContent = "💬";
+    widgetButton.innerHTML = "💬";
+    widgetButton.setAttribute("aria-label", "Abrir chat de asistente");
     shadow.appendChild(widgetButton);
   
     const widgetContainer = document.createElement("div");
@@ -129,32 +484,102 @@
   
     const header = document.createElement("div");
     header.className = "header";
-    header.innerHTML = `Asistente Virtual`;
-    const resetButton = document.createElement("button");
-    resetButton.className = "resetButton";
-    resetButton.textContent = "Reiniciar";
-    header.appendChild(resetButton);
+    header.innerHTML = `
+      <div class="headerContent">
+        <div class="headerIcon">🤖</div>
+        <span>Asistente Virtual</span>
+      </div>
+      <div class="headerControls">
+        <button class="controlButton collapseButton" aria-label="Colapsar chat">−</button>
+        <button class="controlButton resetButton" aria-label="Reiniciar chat">↻</button>
+      </div>
+    `;
     widgetContainer.appendChild(header);
+  
+    const content = document.createElement("div");
+    content.className = "content";
+    widgetContainer.appendChild(content);
   
     const messagesContainer = document.createElement("div");
     messagesContainer.className = "messages";
-    widgetContainer.appendChild(messagesContainer);
+    content.appendChild(messagesContainer);
   
     const optionsContainer = document.createElement("div");
     optionsContainer.className = "options";
-    widgetContainer.appendChild(optionsContainer);
+    content.appendChild(optionsContainer);
+  
+    // Dragging functionality
+    let isDragging = false;
+    let dragStart = { x: 0, y: 0 };
+    let widgetStart = { x: 0, y: 0 };
+  
+    header.addEventListener("mousedown", (e) => {
+      if (e.target.closest('.controlButton')) return;
+      
+      isDragging = true;
+      dragStart = { x: e.clientX, y: e.clientY };
+      widgetStart = { x: widgetPosition.x, y: widgetPosition.y };
+      header.style.cursor = "grabbing";
+      widgetContainer.classList.add("dragging");
+    });
+  
+    document.addEventListener("mousemove", (e) => {
+      if (!isDragging) return;
+      
+      const deltaX = e.clientX - dragStart.x;
+      const deltaY = e.clientY - dragStart.y;
+      
+      widgetPosition.x = widgetStart.x + deltaX;
+      widgetPosition.y = widgetStart.y + deltaY;
+      
+      // Keep widget within viewport bounds
+      const maxX = window.innerWidth - widgetContainer.offsetWidth - 20;
+      const maxY = window.innerHeight - widgetContainer.offsetHeight - 20;
+      
+      widgetPosition.x = Math.max(20, Math.min(widgetPosition.x, maxX));
+      widgetPosition.y = Math.max(20, Math.min(widgetPosition.y, maxY));
+      
+      widgetContainer.style.left = widgetPosition.x + "px";
+      widgetContainer.style.bottom = "auto";
+      widgetContainer.style.right = "auto";
+    });
+  
+    document.addEventListener("mouseup", () => {
+      if (isDragging) {
+        isDragging = false;
+        header.style.cursor = "grab";
+        widgetContainer.classList.remove("dragging");
+      }
+    });
+  
+    // Collapse functionality
+    const collapseButton = header.querySelector('.collapseButton');
+    collapseButton.addEventListener("click", () => {
+      isCollapsed = !isCollapsed;
+      content.classList.toggle("collapsed", isCollapsed);
+      widgetContainer.classList.toggle("collapsed", isCollapsed);
+      collapseButton.textContent = isCollapsed ? "+" : "−";
+      collapseButton.setAttribute("aria-label", isCollapsed ? "Expandir chat" : "Colapsar chat");
+    });
+  
+    // Reset functionality
+    const resetButton = header.querySelector('.resetButton');
+    resetButton.addEventListener("click", resetChat);
   
     function saveState() {
       localStorage.setItem("decision-chat-current", currentNode);
       localStorage.setItem("decision-chat-history", JSON.stringify(history));
     }
+  
     function addMessage(text, from) {
       history.push({ text, from });
       renderMessages();
       saveState();
     }
+  
     function handleOptionClick(option) {
       addMessage(option.text, "user");
+      
       if (option.action && actions[option.action]) {
         actions[option.action]();
         currentNode = "end";
@@ -163,8 +588,10 @@
         currentNode = option.next;
         addMessage(decisionTree[option.next].message, "bot");
       }
+      
       renderOptions();
     }
+  
     function resetChat() {
       localStorage.removeItem("decision-chat-current");
       localStorage.removeItem("decision-chat-history");
@@ -173,19 +600,33 @@
       addMessage(decisionTree["start"].message, "bot");
       renderOptions();
     }
+  
     function renderMessages() {
       messagesContainer.innerHTML = "";
-      history.forEach((msg) => {
+      history.forEach((msg, index) => {
         const div = document.createElement("div");
         div.textContent = msg.text;
         div.className = msg.from === "bot" ? "botMessage" : "userMessage";
+        
+        // Add animation for new messages
+        if (index === history.length - 1) {
+          div.classList.add("message-enter");
+        }
+        
         messagesContainer.appendChild(div);
       });
-      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      
+      // Smooth scroll to bottom
+      messagesContainer.scrollTo({
+        top: messagesContainer.scrollHeight,
+        behavior: "smooth"
+      });
     }
+  
     function renderOptions() {
       optionsContainer.innerHTML = "";
       const node = decisionTree[currentNode];
+      
       if (node.options) {
         node.options.forEach((o) => {
           const btn = document.createElement("button");
@@ -201,14 +642,43 @@
       isOpen = !isOpen;
       widgetContainer.style.display = isOpen ? "flex" : "none";
       widgetButton.style.display = isOpen ? "none" : "block";
+      
       if (isOpen && history.length === 0) {
         addMessage(decisionTree[currentNode].message, "bot");
         renderOptions();
       }
     });
-    resetButton.addEventListener("click", resetChat);
   
+    // Initialize
     renderMessages();
     renderOptions();
+    
+    // Add keyboard navigation
+    document.addEventListener("keydown", (e) => {
+      if (!isOpen) return;
+      
+      const optionButtons = optionsContainer.querySelectorAll('.optionButton');
+      const activeElement = document.activeElement;
+      
+      if (e.key === "Escape") {
+        isOpen = false;
+        widgetContainer.style.display = "none";
+        widgetButton.style.display = "block";
+      } else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        e.preventDefault();
+        const currentIndex = Array.from(optionButtons).indexOf(activeElement);
+        let nextIndex;
+        
+        if (e.key === "ArrowDown") {
+          nextIndex = currentIndex < optionButtons.length - 1 ? currentIndex + 1 : 0;
+        } else {
+          nextIndex = currentIndex > 0 ? currentIndex - 1 : optionButtons.length - 1;
+        }
+        
+        optionButtons[nextIndex]?.focus();
+      } else if (e.key === "Enter" && activeElement.classList.contains('optionButton')) {
+        activeElement.click();
+      }
+    });
   })();
   
