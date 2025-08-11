@@ -95,6 +95,7 @@
       open_new_cars: () => window.open("/catalogo-autos-nuevos", "_blank"),
       open_used_cars: () => window.open("/catalogo-autos-usados", "_blank"),
       connect_finance_agent: () => alert("Conectando con un asesor financiero..."),
+      esquema_formacion_continua: () => window.open("https://cmvchile.cl/cmv/reacreditacion/esquema-de-formacion-continua", "_blank"),
       close_chat: () => {
         alert("Cerrando el chat. ¡Gracias por visitarnos!");
         const container = document.getElementById("decision-chat-root");

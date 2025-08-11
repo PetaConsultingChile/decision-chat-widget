@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Widget CMV - Prueba</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .info-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            background: #f9f9f9;
+        }
+        
+        .info-section h3 {
+            color: #555;
+            margin-top: 0;
+        }
+        
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .feature-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .feature-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .feature-list li:before {
+            content: "✅ ";
+            margin-right: 10px;
+        }
+        
+        .test-info {
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .test-info h4 {
+            color: #1976d2;
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 Widget CMV - Asistente Virtual</h1>
+        
+        <div class="info-section">
+            <h3>📋 Información del Widget</h3>
+            <p>Este widget ha sido configurado específicamente para el <strong>CMV (Comisión del Mercado de Valores)</strong> con las siguientes funcionalidades:</p>
+            
+            <ul class="feature-list">
+                <li><strong>Acreditación:</strong> Información sobre postulación, plazos y estructura de exámenes</li>
+                <li><strong>Exámenes:</strong> Modalidades disponibles y cómo rendir online</li>
+                <li><strong>Pagos:</strong> Valores, medios de pago y esquema de formación continua</li>
+                <li><strong>Esquema de Formación Continua:</strong> Cómo realizarlo y cursos por categoría</li>
+            </ul>
+        </div>
+        
+        <div class="test-info">
+            <h4>🧪 Instrucciones de Prueba</h4>
+            <ol>
+                <li>Haz clic en el botón del chat (💬) en la esquina inferior derecha</li>
+                <li>Explora las diferentes opciones del menú</li>
+                <li>Prueba la funcionalidad de "Esquema de Formación Continua" que abre el link directo</li>
+                <li>Verifica que la navegación entre menús funcione correctamente</li>
+            </ol>
+        </div>
+        
+        <div class="info-section">
+            <h3>🔗 Funcionalidades Especiales</h3>
+            <ul class="feature-list">
+                <li><strong>Link Directo:</strong> La opción "¿Cuál es el valor del Esquema de Formación Continua?" abre directamente el link: <code>https://cmvchile.cl/cmv/reacreditacion/esquema-de-formacion-continua</code></li>
+                <li><strong>Navegación Intuitiva:</strong> Cada sección tiene opciones para volver al menú anterior o al principal</li>
+                <li><strong>Respuestas Detalladas:</strong> Cada pregunta tiene una respuesta específica y útil</li>
+                <li><strong>Actualización Dinámica:</strong> El contenido se puede actualizar modificando el archivo JSON en GitHub</li>
+            </ul>
+        </div>
+        
+        <div class="info-section">
+            <h3>📊 Estructura del Árbol de Decisiones</h3>
+            <p>El widget está organizado en 4 categorías principales:</p>
+            
+            <h4>1. Acreditación</h4>
+            <ul>
+                <li>¿Cómo puede postular?</li>
+                <li>¿Cuál es el plazo para la revisión de antecedentes?</li>
+                <li>¿Hasta cuándo se mantiene la estructura en cuanto a composición, temarios y categorías en el Examen de Acreditación?</li>
+            </ul>
+            
+            <h4>2. Exámenes</h4>
+            <ul>
+                <li>¿Cuáles son las modalidades de exámenes?</li>
+                <li>¿Cómo puede rendir en modalidad online?</li>
+            </ul>
+            
+            <h4>3. Pagos</h4>
+            <ul>
+                <li>¿Cuánto es el valor del examen?</li>
+                <li>¿Cuáles son los medios de pago?</li>
+                <li>¿Cuál es el valor del Esquema de Formación Continua? (con link directo)</li>
+            </ul>
+            
+            <h4>4. Esquema de Formación Continua</h4>
+            <ul>
+                <li>Tengo que realizar mi Esquema de Formación Continua</li>
+                <li>¿Qué cursos corresponden según mi categoría funcional?</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Configuración del widget -->
+    <script>
+        window.decisionChatConfig = {
+            apiUrl: './decision-tree.json',
+            updateInterval: 300000 // 5 minutos
+        };
+    </script>
+    
+    <!-- Widget -->
+    <script src="widget.js"></script>
+</body>
+</html> 
