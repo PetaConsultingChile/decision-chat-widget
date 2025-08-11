@@ -1,5 +1,20 @@
 (function () {
-    const decisionTree = {
+    // Configuración dinámica del widget
+    const widgetConfig = {
+      // URL de la API para cargar el árbol de decisiones (opcional)
+      apiUrl: null,
+      // Configuración inicial del árbol (se puede sobrescribir)
+      initialTree: null,
+      // Intervalo de actualización en milisegundos (0 = sin actualización automática)
+      updateInterval: 0,
+      // Callback para personalizar acciones
+      customActions: {},
+      // Callback para personalizar el renderizado
+      customRenderer: null
+    };
+
+    // Árbol de decisiones por defecto (fallback)
+    const defaultDecisionTree = {
       start: {
         message: "¡Hola! Bienvenido al Taller y Concesionario. ¿En qué podemos ayudarte hoy?",
         options: [
@@ -76,8 +91,12 @@
         ],
       },
     };
-  
-    const actions = {
+
+    // Variable global para el árbol de decisiones (se actualiza dinámicamente)
+    let decisionTree = { ...defaultDecisionTree };
+
+    // Acciones por defecto
+    const defaultActions = {
       connect_agent: () => alert("Conectando con un asesor de servicio al cliente..."),
       schedule_service: () => window.open("/agenda-cita", "_blank"),
       open_parts_catalog: () => window.open("/catalogo-repuestos", "_blank"),
@@ -90,6 +109,165 @@
         if (container) container.style.display = "none";
       },
     };
+
+    // Variable global para las acciones (se puede extender dinámicamente)
+    let actions = { ...defaultActions };
+
+    // Función para cargar configuración desde el HTML
+    function loadConfigFromHTML() {
+      const script = document.currentScript || document.querySelector('script[src*="widget.js"]');
+      if (script) {
+        // Buscar configuración en atributos data-*
+        const apiUrl = script.getAttribute('data-api-url');
+        const updateInterval = script.getAttribute('data-update-interval');
+        
+        if (apiUrl) widgetConfig.apiUrl = apiUrl;
+        if (updateInterval) widgetConfig.updateInterval = parseInt(updateInterval);
+      }
+
+      // Buscar configuración en window
+      if (window.decisionChatConfig) {
+        Object.assign(widgetConfig, window.decisionChatConfig);
+      }
+    }
+
+    // Función para cargar árbol desde API
+    async function loadTreeFromAPI() {
+      if (!widgetConfig.apiUrl) return false;
+
+      try {
+        const response = await fetch(widgetConfig.apiUrl);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        
+        const data = await response.json();
+        
+        if (data.tree && typeof data.tree === 'object') {
+          decisionTree = { ...defaultDecisionTree, ...data.tree };
+          console.log('Árbol de decisiones cargado desde API:', decisionTree);
+          return true;
+        }
+      } catch (error) {
+        console.warn('Error cargando árbol desde API:', error);
+        return false;
+      }
+      
+      return false;
+    }
+
+    // Función para actualizar acciones dinámicamente
+    function updateActions(newActions) {
+      if (newActions && typeof newActions === 'object') {
+        actions = { ...actions, ...newActions };
+      }
+    }
+
+    // Función para actualizar el árbol dinámicamente
+    function updateDecisionTree(newTree) {
+      if (newTree && typeof newTree === 'object') {
+        decisionTree = { ...defaultDecisionTree, ...newTree };
+        
+        // Si el chat está abierto, actualizar la vista
+        if (isOpen) {
+          renderMessages();
+          renderOptions();
+        }
+        
+        console.log('Árbol de decisiones actualizado:', decisionTree);
+        return true;
+      }
+      return false;
+    }
+
+    // Función para obtener el árbol actual
+    function getCurrentTree() {
+      return { ...decisionTree };
+    }
+
+    // Función para agregar nodos dinámicamente
+    function addNode(nodeId, nodeData) {
+      if (nodeId && nodeData && typeof nodeData === 'object') {
+        decisionTree[nodeId] = nodeData;
+        return true;
+      }
+      return false;
+    }
+
+    // Función para remover nodos
+    function removeNode(nodeId) {
+      if (decisionTree[nodeId]) {
+        delete decisionTree[nodeId];
+        return true;
+      }
+      return false;
+    }
+
+    // Función para actualizar opciones de un nodo específico
+    function updateNodeOptions(nodeId, newOptions) {
+      if (decisionTree[nodeId] && Array.isArray(newOptions)) {
+        decisionTree[nodeId].options = newOptions;
+        
+        // Si estamos en ese nodo, actualizar la vista
+        if (isOpen && currentNode === nodeId) {
+          renderOptions();
+        }
+        
+        return true;
+      }
+      return false;
+    }
+
+    // Función para actualización automática
+    let updateTimer = null;
+    
+    function startAutoUpdate() {
+      if (widgetConfig.updateInterval > 0) {
+        updateTimer = setInterval(async () => {
+          await loadTreeFromAPI();
+        }, widgetConfig.updateInterval);
+      }
+    }
+
+    function stopAutoUpdate() {
+      if (updateTimer) {
+        clearInterval(updateTimer);
+        updateTimer = null;
+      }
+    }
+
+    // Inicialización del árbol dinámico
+    async function initializeDynamicTree() {
+      // Cargar configuración
+      loadConfigFromHTML();
+      
+      // Aplicar configuración inicial si existe
+      if (widgetConfig.initialTree) {
+        updateDecisionTree(widgetConfig.initialTree);
+      }
+      
+      // Intentar cargar desde API
+      const apiLoaded = await loadTreeFromAPI();
+      
+      // Si no se cargó desde API y no hay configuración inicial, usar el árbol por defecto
+      if (!apiLoaded && !widgetConfig.initialTree) {
+        decisionTree = { ...defaultDecisionTree };
+      }
+      
+      // Iniciar actualización automática si está configurada
+      startAutoUpdate();
+      
+      // Exponer funciones para uso externo
+      window.decisionChatWidget = {
+        updateTree: updateDecisionTree,
+        getTree: getCurrentTree,
+        addNode: addNode,
+        removeNode: removeNode,
+        updateNodeOptions: updateNodeOptions,
+        updateActions: updateActions,
+        reloadFromAPI: loadTreeFromAPI,
+        stopAutoUpdate: stopAutoUpdate,
+        startAutoUpdate: startAutoUpdate
+      };
+    }
   
     let isOpen = false;
     let isCollapsed = false;
@@ -680,5 +858,8 @@
         activeElement.click();
       }
     });
+
+    // Inicializar el árbol dinámico
+    initializeDynamicTree();
   })();
   

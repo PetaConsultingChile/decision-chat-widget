@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Widget con JSON desde GitHub CDN</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .demo-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            background: #f9f9f9;
+        }
+        
+        .demo-section h3 {
+            color: #555;
+            margin-top: 0;
+        }
+        
+        .code-block {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 15px 0;
+        }
+        
+        button {
+            background: #336090;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        button:hover {
+            background: #2a4f7a;
+        }
+        
+        .github-info {
+            background: #24292e;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .github-info h4 {
+            color: #58a6ff;
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Widget con JSON desde GitHub CDN</h1>
+        
+        <div class="demo-section">
+            <h3>📋 Configuración con GitHub CDN</h3>
+            <p>Este ejemplo muestra cómo usar el widget cargando el árbol de decisiones desde un archivo JSON alojado en GitHub.</p>
+            
+            <div class="github-info">
+                <h4>🔗 URLs de GitHub CDN</h4>
+                <p><strong>Raw JSON:</strong> <code>https://raw.githubusercontent.com/TU_USUARIO/TU_REPO/main/decision-tree.json</code></p>
+                <p><strong>Con CDN:</strong> <code>https://cdn.jsdelivr.net/gh/TU_USUARIO/TU_REPO@main/decision-tree.json</code></p>
+            </div>
+            
+            <h4>1. Configuración básica</h4>
+            <div class="code-block">
+&lt;script&gt;
+window.decisionChatConfig = {
+    apiUrl: 'https://raw.githubusercontent.com/TU_USUARIO/TU_REPO/main/decision-tree.json',
+    updateInterval: 300000 // 5 minutos
+};
+&lt;/script&gt;
+&lt;script src="widget.js"&gt;&lt;/script&gt;
+            </div>
+            
+            <h4>2. Configuración con CDN alternativo</h4>
+            <div class="code-block">
+&lt;script&gt;
+window.decisionChatConfig = {
+    apiUrl: 'https://cdn.jsdelivr.net/gh/TU_USUARIO/TU_REPO@main/decision-tree.json',
+    updateInterval: 300000
+};
+&lt;/script&gt;
+&lt;script src="widget.js"&gt;&lt;/script&gt;
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h3>🎮 Demo con JSON Local</h3>
+            <p>Para este demo, estamos usando el archivo JSON local. En producción, usarías la URL de GitHub.</p>
+            
+            <div class="button-group">
+                <button onclick="loadFromLocalJSON()">📁 Cargar desde JSON Local</button>
+                <button onclick="loadFromGitHubDemo()">🌐 Simular GitHub CDN</button>
+                <button onclick="showCurrentConfig()">⚙️ Ver Configuración</button>
+                <button onclick="testUpdate()">🔄 Probar Actualización</button>
+            </div>
+            
+            <div id="status"></div>
+        </div>
+        
+        <div class="demo-section">
+            <h3>📝 Instrucciones para GitHub</h3>
+            <ol>
+                <li><strong>Sube el archivo JSON a tu repositorio GitHub</strong>
+                    <div class="code-block">
+# En tu repositorio GitHub:
+# 1. Crea el archivo decision-tree.json
+# 2. Sube el contenido del JSON
+# 3. Haz commit y push
+                    </div>
+                </li>
+                <li><strong>Obtén la URL raw</strong>
+                    <div class="code-block">
+# La URL será algo como:
+https://raw.githubusercontent.com/TU_USUARIO/TU_REPO/main/decision-tree.json
+                    </div>
+                </li>
+                <li><strong>Configura el widget</strong>
+                    <div class="code-block">
+window.decisionChatConfig = {
+    apiUrl: 'TU_URL_DE_GITHUB_RAW',
+    updateInterval: 300000
+};
+                    </div>
+                </li>
+            </ol>
+        </div>
+        
+        <div class="demo-section">
+            <h3>🔧 Ventajas de usar GitHub CDN</h3>
+            <ul>
+                <li>✅ <strong>Fácil de mantener</strong> - Solo editas el JSON en GitHub</li>
+                <li>✅ <strong>Versionado</strong> - Puedes hacer rollback a versiones anteriores</li>
+                <li>✅ <strong>Sin servidor</strong> - No necesitas hosting propio</li>
+                <li>✅ <strong>CDN global</strong> - GitHub tiene CDN en todo el mundo</li>
+                <li>✅ <strong>Gratis</strong> - GitHub es gratuito para repositorios públicos</li>
+                <li>✅ <strong>Actualización automática</strong> - El widget se actualiza automáticamente</li>
+            </ul>
+        </div>
+        
+        <div class="demo-section">
+            <h3>📊 Estructura del JSON</h3>
+            <p>El archivo JSON debe tener esta estructura:</p>
+            <div class="code-block">
+{
+  "tree": {
+    "start": {
+      "message": "Mensaje inicial",
+      "options": [
+        {"text": "Opción 1", "next": "nodo1"},
+        {"text": "Opción 2", "action": "accion1"}
+      ]
+    }
+  },
+  "metadata": {
+    "version": "1.0.0",
+    "lastUpdated": "2024-01-15T10:00:00Z"
+  },
+  "config": {
+    "autoUpdate": true,
+    "updateInterval": 300000
+  }
+}
+            </div>
+        </div>
+    </div>
+
+    <!-- Configuración del widget -->
+    <script>
+        // Configuración para cargar desde JSON local (para el demo)
+        window.decisionChatConfig = {
+            apiUrl: './decision-tree.json', // En producción sería la URL de GitHub
+            updateInterval: 300000, // 5 minutos
+            initialTree: {
+                start: {
+                    message: "¡Hola! Este es un demo del widget con JSON desde GitHub CDN.",
+                    options: [
+                        { text: "Cargar desde JSON", action: "load_json_demo" },
+                        { text: "Ver configuración", action: "show_config_demo" },
+                        { text: "Probar actualización", action: "test_update_demo" }
+                    ]
+                }
+            }
+        };
+    </script>
+    
+    <!-- Widget Script -->
+    <script src="widget.js"></script>
+    
+    <script>
+        // Funciones de demostración
+        function loadFromLocalJSON() {
+            showStatus("🔄 Cargando desde JSON local...", "info");
+            
+            fetch('./decision-tree.json')
+                .then(response => response.json())
+                .then(data => {
+                    window.decisionChatWidget.updateTree(data.tree);
+                    showStatus("✅ JSON cargado exitosamente desde archivo local", "success");
+                })
+                .catch(error => {
+                    showStatus("❌ Error cargando JSON: " + error.message, "error");
+                });
+        }
+
+        function loadFromGitHubDemo() {
+            showStatus("🔄 Simulando carga desde GitHub CDN...", "info");
+            
+            // Simular carga desde GitHub (en realidad cargamos el local)
+            setTimeout(() => {
+                fetch('./decision-tree.json')
+                    .then(response => response.json())
+                    .then(data => {
+                        // Simular que viene de GitHub
+                        data.metadata.lastUpdated = new Date().toISOString();
+                        window.decisionChatWidget.updateTree(data.tree);
+                        showStatus("✅ Simulación de GitHub CDN completada", "success");
+                    })
+                    .catch(error => {
+                        showStatus("❌ Error en simulación: " + error.message, "error");
+                    });
+            }, 1000);
+        }
+
+        function showCurrentConfig() {
+            const tree = window.decisionChatWidget.getTree();
+            console.log("Configuración actual:", {
+                tree: tree,
+                config: window.decisionChatConfig
+            });
+            showStatus("✅ Configuración mostrada en consola (F12)", "success");
+        }
+
+        function testUpdate() {
+            showStatus("🔄 Probando actualización dinámica...", "info");
+            
+            // Simular actualización del JSON
+            const updatedTree = {
+                start: {
+                    message: "¡Árbol actualizado dinámicamente!",
+                    options: [
+                        { text: "Nueva opción 1", action: "new_action_1" },
+                        { text: "Nueva opción 2", action: "new_action_2" },
+                        { text: "Volver al original", action: "restore_original" }
+                    ]
+                }
+            };
+            
+            window.decisionChatWidget.updateTree(updatedTree);
+            window.decisionChatWidget.updateActions({
+                new_action_1: () => alert("¡Nueva acción 1!"),
+                new_action_2: () => alert("¡Nueva acción 2!"),
+                restore_original: () => {
+                    loadFromLocalJSON();
+                }
+            });
+            
+            showStatus("✅ Árbol actualizado dinámicamente", "success");
+        }
+
+        // Acciones personalizadas para el demo
+        window.decisionChatWidget.updateActions({
+            load_json_demo: () => loadFromLocalJSON(),
+            show_config_demo: () => showCurrentConfig(),
+            test_update_demo: () => testUpdate()
+        });
+
+        function showStatus(message, type = "info") {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+            
+            setTimeout(() => {
+                statusDiv.innerHTML = '';
+            }, 5000);
+        }
+
+        // Mostrar estado inicial
+        setTimeout(() => {
+            showStatus("✅ Widget cargado y listo para usar con JSON desde GitHub CDN", "success");
+        }, 1000);
+    </script>
+</body>
+</html> 
