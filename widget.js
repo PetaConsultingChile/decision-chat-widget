@@ -1,19 +1,13 @@
 (function () {
-    // Configuración dinámica del widget
+
     const widgetConfig = {
-      // URL de la API para cargar el árbol de decisiones (opcional)
-      apiUrl: null,
-      // Configuración inicial del árbol (se puede sobrescribir)
+      apiUrl: "https://raw.githubusercontent.com/PetaConsultingChile/decision-chat-widget/refs/heads/main/decision-tree.json",
       initialTree: null,
-      // Intervalo de actualización en milisegundos (0 = sin actualización automática)
-      updateInterval: 0,
-      // Callback para personalizar acciones
+      updateInterval: 10000,
       customActions: {},
-      // Callback para personalizar el renderizado
       customRenderer: null
     };
 
-    // Árbol de decisiones por defecto (fallback)
     const defaultDecisionTree = {
       start: {
         message: "¡Hola! Bienvenido al Taller y Concesionario. ¿En qué podemos ayudarte hoy?",
@@ -92,10 +86,8 @@
       },
     };
 
-    // Variable global para el árbol de decisiones (se actualiza dinámicamente)
     let decisionTree = { ...defaultDecisionTree };
 
-    // Acciones por defecto
     const defaultActions = {
       connect_agent: () => alert("Conectando con un asesor de servicio al cliente..."),
       schedule_service: () => window.open("/agenda-cita", "_blank"),
@@ -110,10 +102,8 @@
       },
     };
 
-    // Variable global para las acciones (se puede extender dinámicamente)
     let actions = { ...defaultActions };
 
-    // Función para cargar configuración desde el HTML
     function loadConfigFromHTML() {
       const script = document.currentScript || document.querySelector('script[src*="widget.js"]');
       if (script) {
