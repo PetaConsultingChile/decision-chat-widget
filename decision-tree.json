@@ -1,7 +1,7 @@
 {
   "tree": {
     "start": {
-      "message": "¡Hola! Bienvenido al asistente virtual del CMV. ¿En qué puedo ayudarte?",
+      "message": "¡Hola Como estas?! Bienvenido al asistente virtual del CMV. ¿En qué puedo ayudarte?",
       "options": [
         { "text": "Acreditación", "next": "acreditacion" },
         { "text": "Exámenes", "next": "examenes" },
